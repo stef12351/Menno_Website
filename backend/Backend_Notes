@@ -1,0 +1,151 @@
+# Backend Usage Guide
+
+The backend server is used to handle:
+1. Blog post management (Create, Read, Update, Delete)
+2. Authentication for the admin panel
+3. Image uploads
+4. Secure API endpoints
+
+## How to Use
+
+1. First, start the backend server:
+```bash
+cd /home/stef/Desktop/AI_Applications/Menno/Project_v1_backup_without_cms/backend
+npm run dev
+```
+
+2. Create API endpoints in `server.ts`:
+```typescript
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import jwt from 'jsonwebtoken';
+import { join } from 'path';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Storage configuration for images
+const storage = multer.diskStorage({
+  destination: './uploads/',
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const upload = multer({ storage });
+
+// Example API endpoints
+// 1. Login
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    const token = jwt.sign({ username }, process.env.JWT_SECRET || 'secret');
+    res.json({ token });
+  } else {
+    res.status(401).json({ message: 'Invalid credentials' });
+  }
+});
+
+// 2. Create blog post
+app.post('/api/posts', upload.single('image'), (req, res) => {
+  const { title, content, author } = req.body;
+  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+  
+  // Here you would typically save to a database
+  res.json({ title, content, author, imageUrl });
+});
+
+// 3. Get all posts
+app.get('/api/posts', (req, res) => {
+  // Here you would typically fetch from a database
+  res.json([/* posts data */]);
+});
+
+app.listen(3001, () => {
+  console.log('Backend running on http://localhost:3001');
+});
+```
+
+3. Connect from your frontend in `Blog.tsx`:
+```typescript
+const Blog: React.FC = () => {
+  const [posts, setPosts] = useState([]);
+
+  useEffect(() => {
+    // Fetch posts from backend
+    fetch('http://localhost:3001/api/posts')
+      .then(res => res.json())
+      .then(data => setPosts(data));
+  }, []);
+
+  // ...rest of component
+};
+```
+
+4. Add admin functionality in `AdminBlog.tsx`:
+```typescript
+const AdminBlog: React.FC = () => {
+  const { token } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    
+    await fetch('http://localhost:3001/api/posts', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+  };
+
+  // ...rest of component
+};
+```
+
+## Key Features
+
+1. **Authentication**
+- Secure login for admin panel
+- JWT token-based authentication
+- Protected routes
+
+2. **Blog Management**
+- Create new posts
+- Upload images
+- Edit existing posts
+- Delete posts
+
+3. **Image Handling**
+- Upload and store images
+- Serve images statically
+- Image optimization
+
+4. **API Security**
+- CORS protection
+- JWT validation
+- Rate limiting
+
+## Directory Structure
+```plaintext
+backend/
+├── src/
+│   ├── server.ts        # Main server file
+│   ├── routes/          # API routes
+│   ├── controllers/     # Business logic
+│   └── middleware/      # Auth & validation
+├── uploads/             # Uploaded images
+└── dist/               # Compiled code
+```
+
+Remember to:
+- Keep your `.env` file secure
+- Never commit sensitive data
+- Use proper error handling
+- Implement logging for production
+- Add proper validation
+- Use TypeScript types
+
+Similar code found with 1 license type

@@ -1,0 +1,549 @@
+# Terminal 1 - Backend
+cd backend
+npm run dev
+
+# Terminal 2 - Frontend
+cd ../Menno_Website
+npm start
+
+For hosting the blog system, you'll need to consider a few key components:
+
+1. **Backend Hosting**
+You can host the backend on:
+- Heroku
+- DigitalOcean
+- Railway
+- Render
+
+2. **Database Solution**
+For blog posts storage, consider using:
+```typescript
+import { MongoClient } from 'mongodb';
+// or
+import { PrismaClient } from '@prisma/client';
+```
+
+3. **Image Storage**
+For image uploads, use a cloud storage service:
+```typescript
+import { S3Client } from '@aws-sdk/client-s3';
+// or
+import { Storage } from '@google-cloud/storage';
+```
+
+4. **Environment Configuration**
+Update your frontend to use environment variables:
+
+```typescript
+VITE_API_URL=https://your-backend-url.com
+VITE_STORAGE_URL=https://your-storage-url.com
+```
+
+5. **API Service**
+Create a service to handle API calls:
+
+```typescript
+const API_URL = import.meta.env.VITE_API_URL;
+
+export const api = {
+  async getPosts() {
+    const response = await fetch(`${API_URL}/api/posts`);
+    return response.json();
+  },
+
+  async createPost(data: FormData) {
+    const response = await fetch(`${API_URL}/api/posts`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: data,
+    });
+    return response.json();
+  },
+
+  async uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const response = await fetch(`${API_URL}/api/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: formData,
+    });
+    return response.json();
+  }
+};
+```
+
+6. **Deployment Steps**:
+
+```bash
+# Backend Deployment (example using Railway)
+cd backend
+railway login
+railway init
+railway up
+
+# Frontend Deployment (example using Vercel)
+cd ../Menno_Website
+vercel
+```
+
+7. **Update package.json**:
+
+```json
+{
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "postinstall": "npm run build"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
+```
+
+8. **Security Updates**:
+
+```typescript
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
+export const securityMiddleware = [
+  helmet(),
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100
+  })
+];
+```
+
+9. **CORS Configuration**:
+
+```typescript
+export const corsOptions = {
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+```
+
+10. **Error Handling**:
+
+```typescript
+export const errorHandler = (err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Internal server error' 
+      : err.message
+  });
+};
+```
+
+Recommended deployment steps:
+
+1. Choose a database provider (MongoDB Atlas, Supabase)
+2. Set up cloud storage (AWS S3, Cloudinary)
+3. Deploy backend to a hosting service
+4. Configure environment variables
+5. Deploy frontend to Vercel/Netlify
+6. Set up custom domain and SSL
+7. Configure CORS properly
+8. Test the complete flow
+
+Remember to:
+- Never commit sensitive data
+- Use environment variables
+- Set up proper backups
+- Configure monitoring
+- Set up logging
+- Use SSL/HTTPS
+- Implement proper error handling
+- Set up CI/CD pipelines
+
+Let me know if you need help with any specific part of the deployment process!
+
+I'll help you set up deployment for the entire website. Here's a comprehensive guide:
+
+### 1. Frontend Deployment (Static Website)
+
+The best options for your React website would be:
+- Vercel (recommended)
+- Netlify
+- GitHub Pages
+
+For Vercel deployment:
+
+1. First, prepare your project:
+
+```tsx
+export const CONFIG = {
+  API_URL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  SITE_URL: import.meta.env.VITE_SITE_URL || 'http://localhost:5173',
+  STORAGE_URL: import.meta.env.VITE_STORAGE_URL || 'http://localhost:3001/uploads'
+};
+```
+
+2. Create environment files:
+
+```plaintext
+VITE_API_URL=https://your-api-domain.com
+VITE_SITE_URL=https://your-website-domain.com
+VITE_STORAGE_URL=https://your-storage-domain.com
+```
+
+3. Update your build configuration:
+
+```typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          animations: ['framer-motion']
+        }
+      }
+    }
+  }
+});
+```
+
+### 2. Backend Setup
+
+Create a production-ready backend:
+
+```typescript
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import { rateLimit } from 'express-rate-limit';
+import { corsOptions } from './config/cors';
+import { errorHandler } from './middleware/errorHandler';
+import routes from './routes';
+
+const app = express();
+
+// Security and optimization middleware
+app.use(helmet());
+app.use(compression());
+app.use(cors(corsOptions));
+app.use(express.json());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Routes
+app.use('/api', routes);
+
+// Error handling
+app.use(errorHandler);
+
+export default app;
+```
+
+### 3. Image Storage
+
+Use Cloudinary for image hosting:
+
+```typescript
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+export const uploadImage = async (file: Express.Multer.File) => {
+  try {
+    const result = await cloudinary.uploader.upload(file.path);
+    return result.secure_url;
+  } catch (error) {
+    throw new Error('Image upload failed');
+  }
+};
+```
+
+### 4. Deployment Steps
+
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Deploy frontend:
+```bash
+cd /home/stef/Desktop/AI_Applications/Menno/Project_v1_backup_without_cms/Menno_Website
+vercel
+```
+
+3. Deploy backend (using Railway):
+```bash
+cd /home/stef/Desktop/AI_Applications/Menno/Project_v1_backup_without_cms/backend
+railway login
+railway init
+railway up
+```
+
+### 5. Domain Configuration
+
+Create a `vercel.json` configuration:
+
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    }
+  ]
+}
+```
+
+### 6. Checklist for Production
+
+1. Update all environment variables on your hosting platforms
+2. Set up SSL certificates
+3. Configure custom domains
+4. Set up monitoring (e.g., Sentry)
+5. Configure backups
+6. Set up CI/CD pipelines
+7. Test all routes and functionalities
+8. Optimize assets and images
+9. Enable caching
+10. Set up logging
+
+### 7. Testing Production Build Locally
+
+```bash
+# Test frontend build
+cd /home/stef/Desktop/AI_Applications/Menno/Project_v1_backup_without_cms/Menno_Website
+npm run build
+npm run preview
+
+# Test backend build
+cd ../backend
+npm run build
+npm start
+```
+
+Remember to:
+- Keep sensitive data in environment variables
+- Use proper error handling
+- Implement proper logging
+- Set up monitoring
+- Configure proper CORS settings
+- Use HTTPS
+- Implement rate limiting
+- Set up proper caching
+- Use CDN for static assets
+- Implement proper security measures
+
+Similar code found with 2 license types
+
+# Website Maintenance Guide
+
+After deploying your website, here's how to maintain it:
+
+## 1. Content Management
+
+For blog posts and content updates, you'll access your admin panel through:
+```
+https://your-domain.com/admin/blog
+```
+
+## 2. Environment Setup
+
+Create a `.env.production` file:
+```env
+VITE_API_URL=https://your-api-domain.com
+VITE_STORAGE_URL=https://your-storage-service.com
+```
+
+## 3. Deployment Updates
+
+When making changes:
+
+```bash
+# Update frontend
+cd Menno_Website
+git add .
+git commit -m "Update description"
+git push origin main  # Vercel will auto-deploy
+
+# Update backend
+cd backend
+git add .
+git commit -m "Backend changes"
+railway up  # If using Railway
+```
+
+## 4. Monitoring
+
+Add monitoring to main.tsx:
+
+```tsx
+import * as Sentry from "@sentry/react";
+
+// Initialize monitoring
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: "production"
+});
+
+// ...existing code...
+```
+
+## 5. Regular Maintenance Tasks
+
+Create a maintenance script:
+
+```typescript
+import { cleanupStorage } from '../utils/storage';
+import { backupDatabase } from '../utils/database';
+
+export async function performMaintenance() {
+  // Cleanup unused images
+  await cleanupStorage();
+  
+  // Backup data
+  await backupDatabase();
+  
+  // Log maintenance completion
+  console.log('Maintenance completed:', new Date().toISOString());
+}
+```
+
+## 6. Backup Strategy
+
+```typescript
+import { uploadToS3 } from './storage';
+
+export async function createBackup() {
+  const date = new Date().toISOString().split('T')[0];
+  const backupName = `backup-${date}.json`;
+  
+  // Get all posts
+  const posts = await getAllPosts();
+  
+  // Upload to backup storage
+  await uploadToS3(JSON.stringify(posts), backupName);
+}
+```
+
+## 7. Update Process
+
+1. Always test locally first:
+```bash
+# Test frontend
+npm run build
+npm run preview
+
+# Test backend
+npm run test
+```
+
+2. Deploy updates:
+```bash
+# Deploy frontend
+vercel --prod
+
+# Deploy backend
+railway up
+```
+
+## 8. Security Updates
+
+Regular security checks:
+```bash
+# Check for vulnerabilities
+npm audit
+
+# Update dependencies
+npm update
+
+# Fix vulnerabilities
+npm audit fix
+```
+
+## 9. Monitoring Dashboard
+
+Create a simple monitoring page:
+
+```tsx
+import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
+
+export const AdminDashboard = () => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) return null;
+  
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Site Status</h2>
+      <div className="grid grid-cols-3 gap-4">
+        <StatusCard title="Storage" value="85%" />
+        <StatusCard title="Posts" value="24" />
+        <StatusCard title="Images" value="156" />
+      </div>
+    </div>
+  );
+};
+```
+
+## 10. Documentation
+
+Keep a maintenance log:
+
+````markdown
+# Maintenance Log
+
+## Latest Updates
+- [2024-02-12] Security patches applied
+- [2024-02-11] Content backup created
+- [2024-02-10] Image optimization performed
+
+## Access Information
+- Admin Panel: https://your-domain.com/admin
+- API Endpoint: https://api.your-domain.com
+- Storage: https://storage.your-domain.com
+````
+
+Remember to:
+- Regularly check logs for errors
+- Monitor site performance
+- Keep backups current
+- Update SSL certificates
+- Review security settings
+- Test all functionality after updates
+- Keep documentation updated

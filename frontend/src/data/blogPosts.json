@@ -1,0 +1,22 @@
+{
+    "posts": [
+        {
+            "id": "1",
+            "title": "De Kunst van Bootpolijsten",
+            "content": "Ontdek onze geavanceerde technieken voor het polijsten van uw boot. Van het verwijderen van oxidatie tot het herstellen van de originele glans, wij gebruiken alleen de beste materialen en methoden.",
+            "author": "Team Proshine",
+            "date": "12 februari 2024",
+            "category": "Onderhoud",
+            "imageUrl": "/images/blog/polishing.jpg"
+        },
+        {
+            "id": "2",
+            "title": "Winterklaar Maken van uw Boot",
+            "content": "Leer hoe u uw boot het beste kunt beschermen tijdens de wintermaanden. Tips voor bescherming tegen weersinvloeden en het behoud van de coating tijdens de winterstalling.",
+            "author": "Team Proshine",
+            "date": "8 februari 2024",
+            "category": "Seizoensvoorbereiding",
+            "imageUrl": "/images/blog/winter-care.jpg"
+        }
+    ]
+}

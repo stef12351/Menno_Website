@@ -1,0 +1,27 @@
+Added the Blog Post Panel
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch master
+# Your branch is behind 'origin/master' by 1 commit, and can be fast-forwarded.
+#   (use "git pull" to update your local branch)
+#
+# Changes to be committed:
+#	renamed:    images/IMG_8078.jpg -> images/blog/blog1.jpg
+#	renamed:    images/IMG-20250208-WA0001.jpg -> images/blog/blog2.jpg
+#	renamed:    images/IMG-20250208-WA0003.jpg -> images/blog/blog3.jpg
+#	modified:   package-lock.json
+#	modified:   package.json
+#	new file:   src/AdminBlog.tsx
+#	modified:   src/App.tsx
+#	new file:   src/AuthContextInstance.tsx
+#	new file:   src/Blog.tsx
+#	new file:   src/BlogPost.tsx
+#	new file:   src/Login.tsx
+#	new file:   src/components/ProtectedRoute.tsx
+#	new file:   src/contexts/AuthContext.tsx
+#	new file:   src/data/blogPosts.json
+#	modified:   src/index.css
+#	modified:   src/main.tsx
+#	modified:   tailwind.config.js
+#
