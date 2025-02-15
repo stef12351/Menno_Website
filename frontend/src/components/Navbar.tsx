@@ -1,43 +1,47 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X, Phone, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ProShineLogo from '../images/Proshine_logo.png';
 
 const Navbar: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const navigate = useNavigate();
 
     const handleContactClick = () => {
-        const element = document.getElementById('contact');
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-        }
+        // Navigate to the route with the contact hash
+        navigate("/#contact");
     };
 
     return (
         <header className="fixed top-4 w-full z-50">
             <div className="container mx-auto px-6 sm:px-8">
-                <div className="bg-gradient-to-r from-[#005031] via-[#006039] to-[#1a745c] backdrop-blur-lg rounded-full shadow-[0_8px_32px_rgba(0,96,57,0.2)] border border-white/10">
+                <div
+                    style={{
+                        background: "linear-gradient(to right, white 15%, #005031 15%, #1a745c 100%)"
+                    }}
+                    className="backdrop-blur-lg rounded-full shadow-[0_8px_32px_rgba(0,96,57,0.2)] border border-white/10"
+                >
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="py-4 sm:py-5 px-6 sm:px-8 flex items-center justify-between text-white"
                     >
                         {/* Logo Section */}
-                        <Link to="/" className="flex items-center group">
-                            <div className="flex items-center">
-                                <div className="relative">
-                                    <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#A4C2C2] via-white to-[#A4C2C2] bg-clip-text text-transparent">
-                                        Pro
-                                    </span>
-                                    <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white/90 to-white text-transparent bg-clip-text">
-                                        shine
-                                    </span>
-                                    <Sparkles className="absolute -top-1 -right-4 h-3 w-3 sm:h-4 sm:w-4 text-[#A4C2C2] group-hover:text-white transition-all duration-300" />
-                                </div>
+                        <Link to="/" className="flex items-center group ml-6">
+                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 overflow-visible">
+                                <img
+                                    src={ProShineLogo}
+                                    alt="Proshine Yachtcare Logo"
+                                    className="absolute object-contain"
+                                    style={{
+                                        top: '50%',
+                                        left: '70%',
+                                        transform: 'translate(-50%, -50%) scale(3)',
+                                        transformOrigin: 'center',
+                                    }}
+                                />
                             </div>
-                            <span className="text-base sm:text-lg font-medium ml-2 text-[#A4C2C2] group-hover:text-white transition-all duration-300">
-                                YACHTCARE
-                            </span>
                         </Link>
 
                         {/* Desktop Navigation */}
@@ -61,7 +65,7 @@ const Navbar: React.FC = () => {
                                 ))}
                             </nav>
 
-                            <div className="flex items-center space-x-6 pl-6 border-l border-white/10">
+                            <div className="flex items-center space-x-6 pl-6 border-l border-[#005031]">
                                 <motion.span
                                     whileHover={{ scale: 1.02 }}
                                     className="hidden lg:flex items-center text-[#A4C2C2] hover:text-white transition-all duration-300 cursor-pointer"
