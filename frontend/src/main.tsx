@@ -8,11 +8,13 @@ import AboutUs from './AboutUs';
 import Services from './Services';
 import Blog from './Blog';
 import BlogPost from './BlogPost';
+import Privacy from './Privacy';
+import Terms from './Terms'; // <-- Import Terms.tsx
 import AdminBlog from './AdminBlog';
+import Login from './Login';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import Login from './Login';
 
 const pageVariants = {
   initial: {
@@ -32,65 +34,108 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<App />} />
-          <Route path="/services" element={
-            <motion.div
-              initial="initial"
-              animate="in"
-              exit="out"
-              variants={pageVariants}
-              transition={{ duration: 0.4 }}
-            >
-              <Services />
-            </motion.div>
-          } />
-          <Route path="/more-images" element={
-            <motion.div
-              initial="initial"
-              animate="in"
-              exit="out"
-              variants={pageVariants}
-              transition={{ duration: 0.4 }}
-            >
-              <MoreImages />
-            </motion.div>
-          } />
-          <Route path="/about-us" element={
-            <motion.div
-              initial="initial"
-              animate="in"
-              exit="out"
-              variants={pageVariants}
-              transition={{ duration: 0.4 }}
-            >
-              <AboutUs />
-            </motion.div>
-          } />
+          <Route
+            path="/services"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <Services />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/more-images"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <MoreImages />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/about-us"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <AboutUs />
+              </motion.div>
+            }
+          />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
-          <Route path="/admin/login" element={
-            <motion.div
-              initial="initial"
-              animate="in"
-              exit="out"
-              variants={pageVariants}
-              transition={{ duration: 0.4 }}
-            >
-              <Login />
-            </motion.div>
-          } />
-          <Route path="/admin/blog" element={
-            <motion.div
-              initial="initial"
-              animate="in"
-              exit="out"
-              variants={pageVariants}
-              transition={{ duration: 0.4 }}
-            >
-              <ProtectedRoute>
-                <AdminBlog />
-              </ProtectedRoute>
-            </motion.div>
-          } />
+          <Route
+            path="/privacy"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <Privacy />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <Terms />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/admin/login"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <Login />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/admin/blog"
+            element={
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={{ duration: 0.4 }}
+              >
+                <ProtectedRoute>
+                  <AdminBlog />
+                </ProtectedRoute>
+              </motion.div>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

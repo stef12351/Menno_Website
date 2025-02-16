@@ -1,11 +1,11 @@
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-const AboutUs = () => {
+const AboutUs: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,18 +22,16 @@ const AboutUs = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#ffffff]">
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
             <nav>
-                {/* Replace the existing header code with the shared Navbar */}
                 <Navbar />
             </nav>
 
             {/* Main Content */}
-            <main className="pt-32">
+            <main className="pt-10">
                 {/* Your existing AboutUs content goes here */}
                 <section className="pt-32 pb-20">
                     <div className="relative">
-                        <div className="absolute inset-0 bg-gradient-to-b from-green-50 to-white"></div>
                         <div className="relative">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}

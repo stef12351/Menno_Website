@@ -47,7 +47,7 @@ const Blog: React.FC = () => {
         <Navbar />
       </nav>
       {/* Main Content */}
-      <section className="py-32 bg-gradient-to-b from-green-50 to-white">
+      <section className="py-40 bg-gradient-to-b from-green-50 to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <motion.span

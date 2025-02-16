@@ -78,40 +78,43 @@ function App() {
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
-              {/* Add subtle parallax effect */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1 }}
                 className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"
               />
-              {/* Add animated pattern overlay */}
               <div className="absolute inset-0 bg-[url('/patterns/subtle-dots.svg')] opacity-10"></div>
             </div>
-            <div className="relative h-full container mx-auto px-8 flex items-center">
+
+            {/* Main content container with adjusted padding */}
+            <div className="relative h-full container mx-auto px-4 sm:px-6 md:px-8 flex flex-col justify-center">
               <motion.div
                 initial={{ opacity: 0, x: -100 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 1.4 }}
-                className="max-w-2xl text-white space-y-8"
+                className="max-w-2xl text-white space-y-6 md:space-y-8"
               >
-                <h1 className="text-7xl font-bold leading-tight tracking-tight">
+                {/* Responsive text sizes */}
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
                   <span className="text-[#A4C2C2]">Excellence</span> in
                   <br />
                   Yacht Care
                 </h1>
-                {/* Add stylish subtitle */}
-                <p className="text-xl text-gray-200 leading-relaxed font-light">
+
+                <p className="text-lg sm:text-xl text-gray-200 leading-relaxed font-light">
                   Ervaar het verschil van premium bootonderhoud door vakexperts.
-                  <br />
+                  <br className="hidden sm:block" />
                   <span className="text-[#A4C2C2] font-medium">Precisie. Passie. Perfectie.</span>
                 </p>
-                <div className="flex space-x-6 pt-4">
-                  <Link to="/services">
+
+                {/* Responsive button layout */}
+                <div className="flex flex-col sm:flex-row gap-4 sm:space-x-6 pt-4">
+                  <Link to="/services" className="w-full sm:w-auto">
                     <motion.button
                       whileHover={{ scale: 1.05, backgroundColor: '#ffffff' }}
                       whileTap={{ scale: 0.95 }}
-                      className="bg-[#A4C2C2] text-[#006039] px-8 py-4 rounded-full transition-all duration-300 flex items-center space-x-3 shadow-lg"
+                      className="w-full sm:w-auto bg-[#A4C2C2] text-[#006039] px-6 sm:px-8 py-4 rounded-full transition-all duration-300 flex items-center justify-center space-x-3 shadow-lg"
                     >
                       <span className="font-medium">Ontdek Onze Services</span>
                       <Ship className="h-5 w-5" />
@@ -120,31 +123,34 @@ function App() {
                   <motion.button
                     whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.1)' }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={handleContactClick}  // Add this onClick handler
-                    className="border-2 border-[#A4C2C2] text-[#A4C2C2] px-8 py-4 rounded-full transition-all duration-300"
+                    onClick={handleContactClick}
+                    className="w-full sm:w-auto border-2 border-[#A4C2C2] text-[#A4C2C2] px-6 sm:px-8 py-4 rounded-full transition-all duration-300 flex items-center justify-center"
                   >
                     <span className="font-medium">Contact</span>
                   </motion.button>
                 </div>
               </motion.div>
-              {/* Add floating stats */}
-              <div className="absolute bottom-20 right-20 grid grid-cols-3 gap-8">
-                {[
-                  { number: "500+", label: "Tevreden Klanten" },
-                  { number: "10+", label: "Jaren Ervaring" },
-                  { number: "100%", label: "Garantie" }
-                ].map((stat, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + index * 0.2 }}
-                    className="bg-white/10 backdrop-blur-md p-4 rounded-lg text-center"
-                  >
-                    <div className="text-[#A4C2C2] text-3xl font-bold">{stat.number}</div>
-                    <div className="text-white text-sm">{stat.label}</div>
-                  </motion.div>
-                ))}
+
+              {/* Responsive stats grid */}
+              <div className="absolute bottom-8 sm:bottom-12 md:bottom-20 left-4 right-4 md:right-20">
+                <div className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 max-w-lg sm:max-w-xl md:max-w-none ml-auto">
+                  {[
+                    { number: "500+", label: "Tevreden Klanten" },
+                    { number: "10+", label: "Jaren Ervaring" },
+                    { number: "100%", label: "Garantie" }
+                  ].map((stat, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 + index * 0.2 }}
+                      className="bg-white/10 backdrop-blur-md p-2 sm:p-4 rounded-lg text-center"
+                    >
+                      <div className="text-[#A4C2C2] text-xl sm:text-2xl md:text-3xl font-bold">{stat.number}</div>
+                      <div className="text-white text-xs sm:text-sm">{stat.label}</div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>

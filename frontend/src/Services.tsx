@@ -12,17 +12,17 @@ const Services = () => {
         window.scrollTo(0, 0);
     }, []);
 
-
     return (
-        <div className="min-h-screen bg-[#ffffff]">
+        // Change the background here from white to the gradient
+        <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
             <nav>
                 <Navbar />
             </nav>
 
             {/* Hero Section */}
-            <section className="pt-32 pb-20">
+            <section className="pt-40 pb-20">
                 <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-b from-green-50 to-white"></div>
+                    {/* Removed the absolute gradient overlay */}
                     <div className="relative">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}

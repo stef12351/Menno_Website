@@ -44,3 +44,14 @@ html {
 [style*="color"] {
     transition: color 0.2s ease;
 }
+
+.navbar-bg {
+    background: linear-gradient(to right, white 15%, #005031 15%, #1a745c 100%);
+}
+
+@media (max-width: 767px) {
+    .navbar-bg {
+        /* Adjust the white section further right on mobile */
+        background: linear-gradient(to right, white 45%, #005031 40%, #1a745c 100%);
+    }
+}
