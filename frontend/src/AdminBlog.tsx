@@ -9,6 +9,8 @@ import MenuBar from './components/MenuBar';
 import DOMPurify from 'dompurify';
 import './styles/editor.css';
 import CustomImage from './extensions/CustomImage';
+// Removed duplicate import of useRef.
+// import { useNavigate } from 'react-router-dom';
 
 interface Post {
     id: string;
@@ -22,7 +24,8 @@ interface Post {
 
 const AdminBlog: React.FC = () => {
     const [posts, setPosts] = useState<Post[]>([]);
-    const { token } = useAuth();
+    const { login } = useAuth();
+    const token = localStorage.getItem('token');
     const formRef = useRef<HTMLFormElement>(null);
     const contentRef = useRef<HTMLTextAreaElement>(null);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -36,6 +39,42 @@ const AdminBlog: React.FC = () => {
     const [editingPost, setEditingPost] = useState<Post | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [error, setError] = useState('');
+    // const navigate = useNavigate();
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setIsLoggedIn(false);
+                return;
+            }
+
+            try {
+                // Verify token with backend
+                const response = await fetch('http://localhost:3001/api/verify-token', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Invalid token');
+                }
+
+                setIsLoggedIn(true);
+            } catch (error) {
+                console.error('Authentication error:', error);
+                localStorage.removeItem('token');
+                setIsLoggedIn(false);
+            }
+        };
+
+        checkAuth();
+    }, []);
 
     // Add categories array near the top of your component
     const categories = [
@@ -73,64 +112,132 @@ const AdminBlog: React.FC = () => {
         }
     });
 
-    const fetchPosts = async () => {
-        const response = await fetch('http://localhost:3001/api/posts');
-        const data = await response.json();
-        setPosts(data);
-    };
+    const fetchPosts = useCallback(async () => {
+        try {
+            const fetchConfig: RequestInit = {
+                method: 'GET',
+                credentials: 'include' as RequestCredentials,  // or explicitly type it
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+
+            const response = await fetch('http://localhost:3001/api/posts', fetchConfig);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setPosts(data);
+        } catch (error) {
+            console.error('Error fetching posts:', error);
+        }
+    }, [token]);
 
     useEffect(() => {
         fetchPosts();
-    }, []);
+    }, [fetchPosts]);
+
+    // Add this function near your other fetch calls
+    const getCsrfToken = async () => {
+        try {
+            console.log('Fetching CSRF token...');
+            const response = await fetch('http://localhost:3001/api/csrf-token', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('CSRF token response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: errorText
+                });
+                throw new Error(`Failed to fetch CSRF token: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (!data.csrfToken) {
+                throw new Error('No CSRF token in response');
+            }
+
+            console.log('CSRF token fetched successfully');
+            return data.csrfToken;
+        } catch (error) {
+            console.error('Error fetching CSRF token:', error);
+            throw error;
+        }
+    };
+
+    const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoggingIn(true);
+        setError('');
+        const formData = new FormData(e.currentTarget);
+
+        try {
+            const response = await fetch('http://localhost:3001/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    username: formData.get('username'),
+                    password: formData.get('password')
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Invalid credentials');
+            }
+
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            login(data.token); // Update auth context
+            setIsLoggedIn(true);
+        } catch (error) {
+            setError('Login failed. Please check your credentials.');
+            console.error('Login error:', error);
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {
-            const formData = new FormData(e.currentTarget);
-            const content = editor?.getHTML() || '';
-
-            // Make sure we're sending all required fields
-            formData.set('content', content);
-            formData.set('title', formData.get('title') as string);
-            formData.set('author', formData.get('author') as string);
-            formData.set('category', formData.get('category') as string);
-
-            // Get the image file from the input
-            const imageFile = (e.currentTarget.querySelector('#image') as HTMLInputElement)?.files?.[0];
-            if (imageFile) {
-                formData.set('image', imageFile);
-            }
+            const csrfToken = await getCsrfToken();
+            const formData = new FormData(formRef.current!);
 
             const response = await fetch('http://localhost:3001/api/posts', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                    'CSRF-Token': csrfToken // Use only one CSRF header
                 },
-                body: formData,
+                credentials: 'include',
+                body: formData
             });
 
             if (!response.ok) {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to create blog post');
-                } else {
-                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
-                }
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
             }
 
-            // Reset form and states
-            if (formRef.current) {
-                formRef.current.reset();
-            }
-            editor?.commands.setContent('');
-
-            alert('Blog post successfully created!');
-            await fetchPosts();
+            const data = await response.json();
+            console.log('Blog post created:', data);
+            formRef.current?.reset();
+            fetchPosts();
         } catch (error) {
             console.error('Error creating blog post:', error);
-            alert('Failed to create blog post. Please try again.');
+            alert(error instanceof Error ? error.message : 'Failed to create blog post');
         }
     };
 
@@ -139,6 +246,7 @@ const AdminBlog: React.FC = () => {
         if (!editingPost) return;
 
         try {
+            const csrfToken = await getCsrfToken();
             const formData = new FormData(e.currentTarget);
             const content = editor?.getHTML() || '';
 
@@ -151,7 +259,9 @@ const AdminBlog: React.FC = () => {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                    'CSRF-Token': csrfToken
                 },
+                credentials: 'include',
                 body: formData,
             });
 
@@ -210,11 +320,14 @@ const AdminBlog: React.FC = () => {
 
     const handleDelete = async (postId: string) => {
         try {
+            const csrfToken = await getCsrfToken();
             const response = await fetch(`http://localhost:3001/api/posts/${postId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                    'CSRF-Token': csrfToken
                 },
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -396,6 +509,58 @@ const AdminBlog: React.FC = () => {
         const timeoutId = setTimeout(attachResizeHandlers, 300);
         return () => clearTimeout(timeoutId);
     }, [editorContent]);
+
+    if (!isLoggedIn) {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-green-50 to-white pt-32 pb-20">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md p-8">
+                        <h1 className="text-2xl font-bold text-[#006039] mb-6">Admin Login</h1>
+                        {error && (
+                            <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">
+                                {error}
+                            </div>
+                        )}
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Username
+                                </label>
+                                <input
+                                    name="username"
+                                    type="text"
+                                    required
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006039]"
+                                    disabled={isLoggingIn}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Password
+                                </label>
+                                <input
+                                    name="password"
+                                    type="password"
+                                    required
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006039]"
+                                    disabled={isLoggingIn}
+                                />
+                            </div>
+                            <div>
+                                <button
+                                    type="submit"
+                                    disabled={isLoggingIn}
+                                    className="w-full bg-[#006039] text-white py-2 px-4 rounded-lg hover:bg-[#004c2d] transition-colors"
+                                >
+                                    {isLoggingIn ? 'Signing in...' : 'Sign in'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 py-12">
@@ -663,4 +828,23 @@ const AdminBlog: React.FC = () => {
 };
 
 export default AdminBlog;
+function useCallback<T extends (...args: unknown[]) => unknown>(
+    callback: T,
+    deps: (string | null)[]
+): T {
+    const lastDepsRef = useRef<(string | null)[] | null>(null);
+    const lastCallbackRef = useRef<T>(callback);
+
+    // If dependencies have changed (or are not set yet), update the memoized callback
+    if (
+        !lastDepsRef.current ||
+        deps.length !== lastDepsRef.current.length ||
+        deps.some((dep, i) => dep !== lastDepsRef.current![i])
+    ) {
+        lastDepsRef.current = deps;
+        lastCallbackRef.current = callback;
+    }
+
+    return lastCallbackRef.current;
+}
 

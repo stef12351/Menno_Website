@@ -11,7 +11,6 @@ import BlogPost from './BlogPost';
 import Privacy from './Privacy';
 import Terms from './Terms'; // <-- Import Terms.tsx
 import AdminBlog from './AdminBlog';
-import Login from './Login';
 import './index.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -103,20 +102,6 @@ createRoot(document.getElementById('root')!).render(
                 transition={{ duration: 0.4 }}
               >
                 <Terms />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/admin/login"
-            element={
-              <motion.div
-                initial="initial"
-                animate="in"
-                exit="out"
-                variants={pageVariants}
-                transition={{ duration: 0.4 }}
-              >
-                <Login />
               </motion.div>
             }
           />

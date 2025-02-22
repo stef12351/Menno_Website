@@ -4,13 +4,100 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { join } from 'path';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+import { securityHeaders } from './middleware/securityHeaders'
+import helmet from 'helmet';
+import csrf from 'csurf';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/auth';
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+
+// Configure CORS with expanded headers
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'CSRF-Token',
+        'X-XSRF-TOKEN',
+        'x-xsrf-token'
+    ]
+}));
+
+// 1. Basic middleware setup
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// 3. CSRF Configuration
+const csrfMiddleware = csrf({
+    cookie: {
+        key: 'XSRF-TOKEN',
+        httpOnly: false,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
+    }
+});
+
+// 4. Debug middleware
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+});
+
+// 5. CSRF Token endpoint (exclude from CSRF protection)
+app.get('/api/csrf-token', (req, res) => {
+    try {
+        // Apply CSRF middleware specifically for this route
+        csrfMiddleware(req, res, (err: any) => {
+            if (err) {
+                console.error('CSRF middleware error:', err);
+                return res.status(500).json({ message: 'CSRF token generation failed' });
+            }
+            // Send the token
+            res.json({ csrfToken: req.csrfToken() });
+        });
+    } catch (error) {
+        console.error('CSRF token generation error:', error);
+        res.status(500).json({ message: 'Failed to generate CSRF token' });
+    }
+});
+
+// 6. Apply CSRF protection to other routes
+app.use((req, res, next) => {
+    // Skip CSRF for login
+    if (req.path === '/api/login') {
+        return next();
+    }
+    // Apply CSRF protection to all other routes
+    csrfMiddleware(req, res, next);
+});
+
+// 7. Error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (err.code === 'EBADCSRFTOKEN') {
+        console.error('CSRF error:', err);
+        return res.status(403).json({ message: 'Invalid CSRF token' });
+    }
+    console.error('Server error:', err);
+    res.status(500).json({ message: 'Internal server error' });
+});
+
+app.use(limiter);
+app.use(securityHeaders);
+app.use(helmet()); // Add Helmet for additional security headers
+
+app.use('/api', authRoutes);
 
 interface BlogPost {
     id: string;
@@ -39,25 +126,6 @@ const upload = multer({ storage });
 // Basic routes
 app.get('/api/health', (req: Request, res: Response) => {
     res.json({ status: 'ok' });
-});
-
-// Auth routes
-app.post('/api/login', (req: Request, res: Response) => {
-    const { username, password } = req.body;
-
-    if (
-        username === process.env.ADMIN_USERNAME &&
-        password === process.env.ADMIN_PASSWORD
-    ) {
-        const token = jwt.sign(
-            { username },
-            process.env.JWT_SECRET || '1234',
-            { expiresIn: '1h' }
-        );
-        res.json({ token });
-    } else {
-        res.status(401).json({ message: 'Invalid credentials' });
-    }
 });
 
 // Add this route before your other routes
