@@ -1,19 +1,26 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ChevronRight, Shield, Ship, Clock, Star, Wrench } from 'lucide-react';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ProShineLogo from '../src/images/Proshine_logo.png';
 
 const Services = () => {
-    const navigate = useNavigate();
+
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
+    const handleContactClick = () => {
+        const element = document.getElementById('contact');
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     return (
-        // Change the background here from white to the gradient
         <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
             <nav>
                 <Navbar />
@@ -22,7 +29,6 @@ const Services = () => {
             {/* Hero Section */}
             <section className="pt-40 pb-20">
                 <div className="relative">
-                    {/* Removed the absolute gradient overlay */}
                     <div className="relative">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
@@ -134,8 +140,8 @@ const Services = () => {
                                                 <motion.button
                                                     whileHover={{ scale: 1.02 }}
                                                     whileTap={{ scale: 0.98 }}
-                                                    onClick={() => navigate('/#contact')}  // Add this onClick handler
-                                                    className="w-full bg-[#006039] text-white px-6 py-3 rounded-full hover:bg-[#004c2d] transition-all duration-300 flex items-center justify-center space-x-2"
+                                                    onClick={handleContactClick}
+                                                    className="w-full bg-[#006039] text-white px-6 py-3 rounded-full hover:bg-[#B3E9F2] transition-all duration-300 flex items-center justify-center space-x-2"
                                                 >
                                                     <span className="font-medium">Offerte Aanvragen</span>
                                                     <ChevronRight className="w-5 h-5" />
@@ -204,8 +210,8 @@ const Services = () => {
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    onClick={() => navigate('/#contact')}  // Update this onClick handler
-                                    className="inline-flex items-center px-8 py-4 bg-[#006039] text-white rounded-full hover:bg-[#004c2d] transition-colors duration-300 shadow-lg hover:shadow-xl"
+                                    onClick={handleContactClick}
+                                    className="inline-flex items-center px-8 py-4 bg-[#006039] text-white rounded-full hover:bg-[#B3E9F2] transition-colors duration-300 shadow-lg hover:shadow-xl"
                                 >
                                     <span className="font-medium">Contact Voor Maatwerk</span>
                                     <ChevronRight className="w-5 h-5 ml-2" />
@@ -219,6 +225,22 @@ const Services = () => {
             <footer>
                 <Footer />
             </footer>
+            {/* Mobile Logo */}
+            <div className="md:hidden fixed top-0 left-0 z-50" style={{ position: 'fixed', top: 0, left: 0 }}>
+                <Link to="/" className="flex items-start block">
+                    <img
+                        src={ProShineLogo}
+                        alt="ProShine Logo"
+                        className="w-48 h-48 object-contain -translate-y-14 -translate-x-6"
+                        style={{ position: 'fixed' }}
+                    />
+                </Link>
+            </div>
+
+            {/* Mobile Hamburger - floating icon only */}
+            <header className="md:hidden fixed top-4 w-full z-50">
+
+            </header>
         </div>
     );
 };

@@ -1,8 +1,10 @@
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import ProShineLogo from '../src/images/Proshine_logo.png';
 
 const MoreImages = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -420,7 +422,24 @@ const MoreImages = () => {
             <footer>
                 <Footer />
             </footer>
+            {/* Mobile Logo */}
+            <div className="md:hidden fixed top-0 left-0 z-50" style={{ position: 'fixed', top: 0, left: 0 }}>
+                <Link to="/" className="flex items-start block">
+                    <img
+                        src={ProShineLogo}
+                        alt="ProShine Logo"
+                        className="w-48 h-48 object-contain -translate-y-14 -translate-x-6"
+                        style={{ position: 'fixed' }}
+                    />
+                </Link>
+            </div>
+
+            {/* Mobile Hamburger - floating icon only */}
+            <header className="md:hidden fixed top-4 w-full z-50">
+
+            </header>
         </div>
+
     );
 };
 

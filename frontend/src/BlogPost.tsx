@@ -5,13 +5,15 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 
 
-interface BlogPost {
+export interface BlogPost {
     title: string;
     content: string;
     author: string;
+    summary: string;
     date: string;
     category: string;
     imageUrl?: string;
+    image: string;
 }
 
 const BlogPost: React.FC = () => {

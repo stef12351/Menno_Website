@@ -37,6 +37,15 @@ const AdminBlog: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
+    // Add categories array near the top of your component
+    const categories = [
+        "Bootonderhoud",
+        "Jachtpolijsten",
+        "Reparaties & Restauraties",
+        "Maritieme Trends",
+        "Duurzaamheid & Milieu"
+    ];
+
     // Update editor configuration to disable default image paste handling
     const editor = useEditor({
         extensions: [
@@ -84,7 +93,14 @@ const AdminBlog: React.FC = () => {
             // Make sure we're sending all required fields
             formData.set('content', content);
             formData.set('title', formData.get('title') as string);
-            formData.set('author', formData.get('author') as string); // Add this line to ensure author is sent
+            formData.set('author', formData.get('author') as string);
+            formData.set('category', formData.get('category') as string);
+
+            // Get the image file from the input
+            const imageFile = (e.currentTarget.querySelector('#image') as HTMLInputElement)?.files?.[0];
+            if (imageFile) {
+                formData.set('image', imageFile);
+            }
 
             const response = await fetch('http://localhost:3001/api/posts', {
                 method: 'POST',
@@ -178,9 +194,11 @@ const AdminBlog: React.FC = () => {
         if (formRef.current) {
             const titleInput = formRef.current.querySelector<HTMLInputElement>('#title');
             const authorInput = formRef.current.querySelector<HTMLInputElement>('#author');
+            const categorySelect = formRef.current.querySelector<HTMLSelectElement>('#category');
 
             if (titleInput) titleInput.value = post.title;
             if (authorInput) authorInput.value = post.author;
+            if (categorySelect) categorySelect.value = post.category;
         }
 
         // Set editor content
@@ -416,6 +434,25 @@ const AdminBlog: React.FC = () => {
                         />
                     </div>
                     <div>
+                        <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                            Categorie
+                        </label>
+                        <select
+                            id="category"
+                            name="category"
+                            required
+                            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-3"
+                            defaultValue=""
+                        >
+                            <option value="" disabled>Selecteer een categorie...</option>
+                            {categories.map((category, index) => (
+                                <option key={index} value={category}>
+                                    {category}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
                         <label htmlFor="content" className="block text-sm font-medium text-gray-700">
                             Content
                         </label>
@@ -480,7 +517,11 @@ const AdminBlog: React.FC = () => {
                                 onClick={() => handlePostClick(post)}
                             >
                                 {post.imageUrl && (
-                                    <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover" />
+                                    <img
+                                        src={`http://localhost:3001${post.imageUrl}`}
+                                        alt={post.title}
+                                        className="w-full h-48 object-cover"
+                                    />
                                 )}
                                 <div className="p-6">
                                     <h2 className="text-xl font-semibold text-[#006039] mb-2 line-clamp-1">

@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
     return (
         <>
             {/* Desktop Navbar */}
-            <header className="hidden md:block fixed top-4 w-full z-50">
+            <header className="hidden lg:block fixed top-4 w-full z-50">
                 <div className="container mx-auto px-6 sm:px-8">
                     <div className="navbar-bg backdrop-blur-lg rounded-full shadow-[0_8px_32px_rgba(0,96,57,0.2)] border border-white/1">
                         <motion.div
@@ -32,8 +32,13 @@ const Navbar: React.FC = () => {
                                         className="absolute object-contain"
                                         style={{
                                             top: '50%',
-                                            left: '90%',
-                                            transform: 'translate(-50%, -50%) scale(3.5)',
+                                            left: window.innerWidth >= 1280 ? '100%' : // Desktop
+                                                window.innerWidth >= 1024 ? '50%' :  // iPad Pro
+                                                    '90%',                               // Other screens
+                                            transform: `translate(-50%, -50%) scale(${window.innerWidth >= 1280 ? '3.5' :    // Desktop
+                                                window.innerWidth >= 1024 ? '2.5' :    // iPad Pro
+                                                    '3.5'                                  // Other screens
+                                                })`,
                                             transformOrigin: 'center',
                                         }}
                                     />
@@ -43,7 +48,6 @@ const Navbar: React.FC = () => {
                             {/* Desktop Navigation - visible on md and larger */}
                             <nav className="flex items-center space-x-8">
                                 {[
-                                    { name: 'Home', path: '/' },
                                     { name: 'Diensten', path: '/services' },
                                     { name: 'Galerij', path: '/more-images' },
                                     { name: 'Blog', path: '/blog' },
@@ -82,7 +86,7 @@ const Navbar: React.FC = () => {
             </header>
 
             {/* Mobile Hamburger - floating icon only */}
-            <header className="md:hidden fixed top-4 w-full z-50">
+            <header className="lg:hidden fixed top-4 w-full z-50">
                 <div className="container mx-auto px-4">
                     <div className="flex justify-end">
                         <motion.button
