@@ -212,15 +212,23 @@ const AdminBlog: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
+        // Ensure that the hidden textarea gets the current editor content
+        if (contentRef.current) {
+            contentRef.current.value = editor?.getHTML() || '';
+        }
+
         try {
             const csrfToken = await getCsrfToken();
             const formData = new FormData(formRef.current!);
+
+            // Explicitly set content from the editor to avoid relying solely on the hidden field
+            formData.set('content', editor?.getHTML() || '');
 
             const response = await fetch('http://localhost:3001/api/posts', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
-                    'CSRF-Token': csrfToken // Use only one CSRF header
+                    'CSRF-Token': csrfToken
                 },
                 credentials: 'include',
                 body: formData
@@ -233,13 +241,18 @@ const AdminBlog: React.FC = () => {
 
             const data = await response.json();
             console.log('Blog post created:', data);
+
+            // Reset the form and clear the editor so that the hidden textarea gets updated too
             formRef.current?.reset();
+            editor?.commands.setContent(''); // This triggers onUpdate to reset the hidden textarea
+
             fetchPosts();
         } catch (error) {
             console.error('Error creating blog post:', error);
             alert(error instanceof Error ? error.message : 'Failed to create blog post');
         }
     };
+
 
     const handleEdit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -346,18 +359,24 @@ const AdminBlog: React.FC = () => {
         if (formRef.current) {
             const titleInput = formRef.current.querySelector<HTMLInputElement>('#title');
             const authorInput = formRef.current.querySelector<HTMLInputElement>('#author');
+            const imageInput = formRef.current.querySelector<HTMLInputElement>('#image');
+            let imageUrl = '';
+            if (imageInput && imageInput.files && imageInput.files[0]) {
+                imageUrl = URL.createObjectURL(imageInput.files[0]);
+            }
             const content = editor?.getHTML() || '';
 
             setPreviewData({
                 title: titleInput?.value || '',
                 author: authorInput?.value || '',
                 content,
-                imageUrl: ''
+                imageUrl
             });
 
             setIsPreviewOpen(true);
         }
     };
+
 
     const handlePostClick = (post: Post) => {
         setSelectedPost(post);
@@ -625,7 +644,9 @@ const AdminBlog: React.FC = () => {
                         <div className="border p-4 rounded-md">
                             <EditorContent editor={editor} />
                         </div>
+                        <textarea name="content" ref={contentRef} hidden />
                     </div>
+
                     <div>
                         <label htmlFor="image" className="block text-sm font-medium text-gray-700">
                             Image
